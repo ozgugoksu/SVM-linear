@@ -8,40 +8,51 @@ Created on Thu Nov  3 11:08:10 2022
 
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.datasets import make_blobs
 from sklearn.svm import LinearSVC
 #from sklearn.inspection import DecisionBoundaryDisplay
 
-from sklearn.manifold import TSNE
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
-import random 
+# from sklearn.manifold import TSNE
+# import numpy as np
+# import pandas as pd
+# import matplotlib.pyplot as plt
+# import seaborn as sns
+# import random 
 
 
-from sklearn.pipeline import make_pipeline
-from sklearn.preprocessing import StandardScaler
-from sklearn.datasets import make_classification
+# from sklearn.pipeline import make_pipeline
+# from sklearn.preprocessing import StandardScaler
+# from sklearn.datasets import make_classification
+from sklearn.metrics import classification_report, confusion_matrix
 
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn import svm, datasets
 
-from sklearn.svm import SVC # "Support vector classifier"
-from sklearn.datasets import make_blobs
+# from sklearn.svm import SVC # "Support vector classifier"
+# from sklearn.datasets import make_blobs
 
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score
-from sklearn.metrics import f1_score
+# from sklearn.metrics import accuracy_score
+# from sklearn.metrics import f1_score
 
-from sklearn.model_selection import GridSearchCV
-from sklearn import preprocessing
+# from sklearn.model_selection import GridSearchCV
+# from sklearn import preprocessing
 import warnings
 
 from sklearn.metrics import roc_auc_score
 import matplotlib.pyplot as plt
 from sklearn.metrics import roc_curve
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.metrics import mean_squared_error
+
+# Import math Library
+import math 
+
+# K-fold cross validation
+from sklearn.model_selection import cross_val_score
+
+# Preserving the percentage of samples for each class
+from sklearn.model_selection import StratifiedKFold
 
 warnings.filterwarnings("ignore")
 
@@ -57,7 +68,10 @@ classLabels = ['person', 'bicycle','car','motorcycle','airplane','bus' ,'train '
 f_list = []
 features_list = []
 counter = 0
-with open('batch_epoch0_iter300.txt', 'r') as pred_file:
+index_plot = 4 # Order for evaluation 
+m = "linearSVM" #Method name for files
+
+with open('info_batch_epoch0_iter4800.txt', 'r') as pred_file:
     Lines = pred_file.readlines()
     for line in Lines:
         f_list.clear()
@@ -78,7 +92,7 @@ pred_file.close()
 
 one_label = [] 
 label_list = [] 
-with open('labels0_epoch300_iter.txt', 'r') as act_file:   
+with open('info_labels0_epoch4800_iter.txt', 'r') as act_file:   
     targets = act_file.readlines()
     for i in range(len(targets)):
         splitted_line = targets[i].split('\n')
@@ -115,7 +129,7 @@ def create_label(index, labels):
           
     return label
        
-def plot_roc_curve(true_y, y_prob, class_name, auc):
+def plot_roc_curve(true_y, y_prob, class_name, auc, i, method="linearSVM"):
     """
     plots the roc curve based of the probabilities
     """
@@ -129,7 +143,7 @@ def plot_roc_curve(true_y, y_prob, class_name, auc):
     plt.ylabel('True Positive Rate') 
     plt.legend(loc="lower right")
     # plt.show()
-    plt.savefig(class_name + ".png") 
+    plt.savefig(method + class_name + "_" + str(i) + ".png") 
       
      
         
@@ -172,10 +186,11 @@ for index in range(len(classLabels)):
 # # X = (tsne_data - tsne_data.min())/ (tsne_data.max() - tsne_data.min())
 
 
+
 # X = tsne_data
-    with open("linear_svm_before_coco_f1.txt", "a+") as f, open("linear_svm_before_coco_acc.txt", "a+") as file_acc, open("linear_svm_before_coco_roc.txt", "a+") as file_roc :
-        f.write(str(classLabels[index]) + ",")
-        file_acc.write(str(classLabels[index]) + ",")
+    with open("linear_svm_coco_roc.txt", "a+") as file_roc :
+        # f.write(str(classLabels[index]) + ",")
+        # file_acc.write(str(classLabels[index]) + ",")
         file_roc.write(str(classLabels[index]) + ",")
         
         X = np.array(features_list)
@@ -185,93 +200,126 @@ for index in range(len(classLabels)):
       
         if (len(unique) != 2) or (counts[0] < 2 or counts[1] < 2):
             print("Not enough samples!!!")
-            f.write(str(0.000) + ",")
-            file_acc.write(str(0.000) + ",")
+            # f.write(str(0.000) + ",")
+            # file_acc.write(str(0.000) + ",")
             file_roc.write(str(0.000) + ",")
-            f.write("\n")
-            file_acc.write("\n")
+            # f.write("\n")
+            # file_acc.write("\n")
             file_roc.write("\n")
             continue
-        
-        else:
+        else: 
+        # else:
             
-            X_train, X_test, y_train, y_test = train_test_split(X, y,
-                                                test_size=0.2, stratify=y,
-                                                random_state=32)# 
+        #     X_train, X_test, y_train, y_test = train_test_split(X, y,
+        #                                         test_size=0.2, stratify=y,
+        #                                         random_state=32)# 
             
             # plt.figure(figsize=(15, 10))
             
             
             print(classLabels[index])
+            # print("The content:", counts[1])
+           
             for i, C in enumerate([100]):
                 
                 # "hinge" is the standard SVM loss
-                clf = LinearSVC(C=C, loss="hinge", random_state=42).fit(X_train, y_train)
+                # clf = LinearSVC(C=C, loss="hinge", random_state=42).fit(X, y)
+                
+                # define cross-validation method to use
+                # scores = cross_val_score(clf, X, y, cv=5, scoring='roc_auc')
+                
+                
+                # classifier = KNeighborsClassifier(n_neighbors=2)
+                # classifier.fit(X_train, y_train)
+                # y_pred = classifier.predict(X_test)
+                # print(confusion_matrix(y_test, y_pred))
+                # print(classification_report(y_test, y_pred))
+                # auc = roc_auc_score(y_test, y_pred)
+                # print(f'AUC (knn) score: {auc}') 
+
+
                 # clf = svm.SVC(kernel='linear', C=C, gamma='auto').fit(X, y)
                 # obtain the support vectors through the decision function
-                decision_function = clf.decision_function(X_train)
+                # decision_function = clf.decision_function(X_train)
                 # print(decision_function)
                 # we can also calculate the decision function manually
                 # decision_function = np.dot(X, clf.coef_[0]) + clf.intercept_[0]
                
                 # The support vectors are the samples that lie within the margin
                 # boundaries, whose size is conventionally constrained to 1
-                support_vector_indices = np.where(np.abs(decision_function) <= 1 + 1e-15)[0]
+                # support_vector_indices = np.where(np.abs(decision_function) <= 1 + 1e-15)[0]
                 # print(type(support_vector_indices))
-                support_vectors = X_train[support_vector_indices]
+                # support_vectors = X_train[support_vector_indices]
                 # print(f"number of support vectors= {len(support_vectors)}")
             
-                predictions_poly = clf.predict(X_test)
+                # predictions_poly = clf.predict(X_test)
                
-                predictions_poly = predictions_poly.tolist()
-                print(f"pred: {len(predictions_poly)}")
-                print(f"actual: {len(y_test)}")
-                accuracy_poly = accuracy_score(y_test, predictions_poly)
-                f1_poly = f1_score(y_test, predictions_poly)
+                # predictions_poly = predictions_poly.tolist()
+                #print(f"pred: {len(predictions_poly)}")
+                #print(f"actual: {len(y_test)}")
+                # accuracy_poly = accuracy_score(y_test, predictions_poly)
+                # f1_poly = f1_score(y_test, predictions_poly)
                 
-                auc = roc_auc_score(y_test, predictions_poly)
-                print(f'AUC score: {auc}') 
+                # auc = roc_auc_score(y_test, predictions_poly)
+                # print("%0.2f AUC score with a standard deviation of %0.2f" % (scores.mean(), scores.std()))
+                # # print(f'AUC score: {auc}') 
+                # # print(f'Error (SVM-Linear): {math.dist(y_test, predictions_poly)}')
                     
-                plot_roc_curve(y_test, predictions_poly, str(classLabels[index]), auc)
-                # print(f"{i} - acc: {accuracy_poly} -- f1: {f1_poly}")
-                f.write(str(f1_poly) + ",")
-                file_acc.write(str(accuracy_poly) + ",")
-                file_roc.write(str(auc) + ",")
+                # # plot_roc_curve(y_test, predictions_poly, str(classLabels[index]), auc, index, m)
+                
+                # # print(f"{i} - acc: {accuracy_poly} -- f1: {f1_poly}")
+                # # f.write(str(f1_poly) + ",")
+                # # file_acc.write(str(accuracy_poly) + ",")
+                # file_roc.write(str(scores.mean()) + ",")
+               
+                
+                skf = StratifiedKFold(n_splits=5)
+                auc = 0.0
+                auc_list = []
+                error = 0.0 
+                min_val = 0.0
+                for train_index, test_index in skf.split(X, y):
+                    # print("TRAIN:", train_index, "TEST:", test_index)
+                    X_train, X_test = X[train_index], X[test_index]
+                    y_train, y_test = y[train_index], y[test_index]
+                    
+                    # print("TRAIN:", len(X_train), "TEST:", len(X_test))
+                    
+                    clf = LinearSVC(C=C, loss="hinge", random_state=42).fit(X_train, y_train)
+                    
+                    predictions_poly = clf.predict(X_test)
+                    # predictions_poly = predictions_poly.tolist()
+                    
+                    auc += roc_auc_score(y_test, predictions_poly)
+                    
+                    if roc_auc_score(y_test, predictions_poly) > min_val:
+                        #Update
+                        min_val = roc_auc_score(y_test, predictions_poly)
+                        y_pred_max = predictions_poly
+                        y_test_max = y_test
+                      
+                    
+                    
+                    
+                    auc_list.append(roc_auc_score(y_test, predictions_poly))
+                    error += mean_squared_error(y_test, predictions_poly)
+                    # auc = auc // 5
+                    # print("%0.2f AUC score " % (auc))
+                    # print(f"error:  {error} -- y_pred: {type(predictions_poly[0])} -- y_test: {type(y_test[0])} \n")
+                 
+                # print(len(auc_list))
+                auc = auc / 5.0
+                # print("%0.2f AUC score, standard deviation %0.2f" % (auc, (np.asarray(auc_list)).std() ))
+                error = error / 5.0
+                # print("%0.2f Error " % (error))
+                file_roc.write(str(auc) + ",std,"  + str((np.asarray(auc_list)).std()) + ",error," + str(error) + "\n")
+                auc_list.clear()
+                
+                # Best score's ROC and AUC value
+                plot_roc_curve(y_test_max, y_pred_max, str(classLabels[index]), min_val, index_plot, m)
                 
                 
-            f.write("\n")
-            file_acc.write("\n")
-            file_roc.write("\n")
-        #     plt.subplot(1, 3, i + 1)
-        #     plt.scatter(X[:, 0], X[:, 1], c=y, s=30, cmap=plt.cm.Paired )
-            
-        #     ax = plt.gca()
-        f.close()
-        file_acc.close()
+         
         file_roc.close()
-#     DecisionBoundaryDisplay.from_estimator(
-#         clf,
-#         X,
-#         ax=ax,
-#         grid_resolution=50,
-#         plot_method="contour",
-#         colors="k",
-#         levels=[-1, 0, 1],
-#         alpha=0.5,
-#         linestyles=["--", "-", "--"],
-       
-#     )
-#     plt.scatter(
-#         support_vectors[:, 0],
-#         support_vectors[:, 1],
-#         s=100,
-#         linewidth=1,
-#         facecolors="none",
-#         edgecolors="k",
-#     )
-#     plt.title("C=" + str(C))
-# plt.tight_layout()
-# plt.savefig(str(classLabels[index])+ "_svm" + ".png")
-# plt.show()
 
 
